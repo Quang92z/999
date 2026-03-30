@@ -1,0 +1,5 @@
+{
+  "name": "SlideGenius: Word to Presentation AI",
+  "description": "An AI-powered assistant that converts Word documents into presentations. Upload a file and chat to refine your slides.",
+  "requestFramePermissions": []
+}
