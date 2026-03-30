@@ -118,24 +118,46 @@ Key requirements for the presentation:
 
   prompt += `\n\nRespond with a JSON object containing a conversational 'message' and the complete updated array of 'slides'.`;
 
-  try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: responseSchema,
-        temperature: 0.7,
-      },
-    });
+  const maxRetries = 3;
+  const baseDelay = 2000;
+  let attempt = 0;
 
-    const text = response.text;
-    if (!text) throw new Error("No response from AI");
+  while (attempt < maxRetries) {
+    try {
+      const response = await ai.models.generateContent({
+        model: "gemini-3.1-pro-preview",
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: responseSchema,
+          temperature: 0.7,
+        },
+      });
 
-    const parsed = JSON.parse(text) as AIResponse;
-    return parsed;
-  } catch (error) {
-    console.error("Error generating presentation:", error);
-    throw error;
+      const text = response.text;
+      if (!text) throw new Error("No response from AI");
+
+      const parsed = JSON.parse(text) as AIResponse;
+      return parsed;
+    } catch (error: any) {
+      attempt++;
+      const errorMessage = error?.message || String(error);
+      const isRateLimit = errorMessage.includes("429") || errorMessage.includes("RESOURCE_EXHAUSTED") || error?.status === 429;
+      
+      if (isRateLimit && attempt < maxRetries) {
+        const delay = baseDelay * Math.pow(2, attempt - 1);
+        console.warn(`Rate limit hit (429). Retrying in ${delay}ms (Attempt ${attempt} of ${maxRetries})...`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        continue;
+      }
+      
+      console.error("Error generating presentation:", error);
+      if (isRateLimit) {
+        throw new Error("API rate limit exceeded. Please wait a moment and try again.");
+      }
+      throw error;
+    }
   }
+  
+  throw new Error("Failed to generate presentation after multiple attempts.");
 }

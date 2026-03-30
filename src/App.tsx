@@ -35,14 +35,15 @@ export default function App() {
           content: response.message,
         },
       ]);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to generate initial presentation:", error);
+      const errorMessage = error?.message || "Sorry, I encountered an error while generating the presentation. Please try again.";
       setMessages((prev) => [
         ...prev,
         {
           id: (Date.now() + 1).toString(),
           role: "assistant",
-          content: "Sorry, I encountered an error while generating the presentation. Please try again.",
+          content: errorMessage,
         },
       ]);
     } finally {
@@ -70,14 +71,15 @@ export default function App() {
           content: response.message,
         },
       ]);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to update presentation:", error);
+      const errorMessage = error?.message || "Sorry, I encountered an error while updating the presentation. Please try again.";
       setMessages((prev) => [
         ...prev,
         {
           id: (Date.now() + 1).toString(),
           role: "assistant",
-          content: "Sorry, I encountered an error while updating the presentation. Please try again.",
+          content: errorMessage,
         },
       ]);
     } finally {
