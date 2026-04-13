@@ -139,6 +139,7 @@ export async function exportToPPTX(slides: Slide[], filename: string = "Presenta
               color: "374151",
               valign: "top",
               margin: 0.1,
+              lineSpacing: 28,
             }
           );
         }
@@ -193,6 +194,7 @@ export async function exportToPPTX(slides: Slide[], filename: string = "Presenta
               fontSize: 16,
               color: "374151",
               valign: "top",
+              lineSpacing: 22,
             });
           });
         }
@@ -264,6 +266,7 @@ export async function exportToPPTX(slides: Slide[], filename: string = "Presenta
               color: "374151",
               valign: "top",
               margin: 0.1,
+              lineSpacing: 24,
             }
           );
         }
@@ -347,6 +350,7 @@ export async function exportToPPTX(slides: Slide[], filename: string = "Presenta
                 color: "374151",
                 valign: "top",
                 margin: 0.1,
+                lineSpacing: 24,
               }
             );
           }
@@ -389,6 +393,7 @@ export async function exportToPPTX(slides: Slide[], filename: string = "Presenta
                 color: "374151",
                 valign: "top",
                 margin: 0.1,
+                lineSpacing: 32,
               }
             );
           }

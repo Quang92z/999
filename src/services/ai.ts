@@ -1,6 +1,24 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+let ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+// Initialize from localStorage if available
+if (typeof window !== 'undefined') {
+  const storedKey = localStorage.getItem('slidegenius_api_key');
+  if (storedKey) {
+    ai = new GoogleGenAI({ apiKey: storedKey });
+  }
+}
+
+export function updateApiKey(key: string) {
+  if (key) {
+    ai = new GoogleGenAI({ apiKey: key });
+    localStorage.setItem('slidegenius_api_key', key);
+  } else {
+    ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    localStorage.removeItem('slidegenius_api_key');
+  }
+}
 
 export interface Slide {
   title: string;

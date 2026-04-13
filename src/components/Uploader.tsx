@@ -12,7 +12,7 @@ export function Uploader({ onUpload }: UploaderProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const processFile = async (file: File) => {
+  const processFile = useCallback(async (file: File) => {
     if (!file.name.endsWith(".docx")) {
       setError("Please upload a .docx file");
       return;
@@ -36,7 +36,7 @@ export function Uploader({ onUpload }: UploaderProps) {
     } finally {
       setIsProcessing(false);
     }
-  };
+  }, [onUpload]);
 
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {

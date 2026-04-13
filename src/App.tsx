@@ -1,9 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Uploader } from "./components/Uploader";
 import { Chat, Message } from "./components/Chat";
 import { SlidePreview } from "./components/SlidePreview";
-import { generatePresentation, Slide } from "./services/ai";
-import { Presentation, Sparkles, FileText } from "lucide-react";
+import { generatePresentation, Slide, updateApiKey } from "./services/ai";
+import { Presentation, Sparkles, FileText, History, Plus, Settings } from "lucide-react";
+import { HistoryModal } from "./components/HistoryModal";
+import { SettingsModal } from "./components/SettingsModal";
+import { savePresentation, PresentationHistory } from "./services/history";
 
 export default function App() {
   const [documentText, setDocumentText] = useState<string>("");
@@ -11,8 +14,36 @@ export default function App() {
   const [slides, setSlides] = useState<Slide[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [currentId, setCurrentId] = useState<string>("");
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  // Save to history whenever slides or messages change
+  useEffect(() => {
+    if (currentId && documentText && slides.length > 0) {
+      savePresentation(currentId, filename, documentText, slides, messages);
+    }
+  }, [slides, messages, currentId, documentText, filename]);
+
+  const handleNewPresentation = () => {
+    setDocumentText("");
+    setFilename("");
+    setSlides([]);
+    setMessages([]);
+    setCurrentId("");
+  };
+
+  const handleSelectHistory = (history: PresentationHistory) => {
+    setCurrentId(history.id);
+    setFilename(history.filename);
+    setDocumentText(history.documentText);
+    setSlides(history.slides);
+    setMessages(history.messages);
+  };
 
   const handleUpload = async (text: string, name: string) => {
+    const newId = Date.now().toString();
+    setCurrentId(newId);
     setDocumentText(text);
     setFilename(name);
     setIsProcessing(true);
@@ -104,12 +135,38 @@ export default function App() {
               </span>
             </div>
           </div>
-          {filename && (
-            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-md text-sm text-gray-600 border border-gray-200">
-              <FileText size={14} className="text-gray-400" />
-              <span className="font-medium truncate max-w-[250px]">{filename}</span>
+          
+          <div className="flex items-center gap-4">
+            {filename && (
+              <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-md text-sm text-gray-600 border border-gray-200">
+                <FileText size={14} className="text-gray-400" />
+                <span className="font-medium truncate max-w-[250px]">{filename}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-2 border-l border-gray-200 pl-4">
+              <button
+                onClick={() => setIsSettingsOpen(true)}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+              >
+                <Settings className="w-4 h-4" />
+                <span className="hidden sm:inline">Settings</span>
+              </button>
+              <button
+                onClick={() => setIsHistoryOpen(true)}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+              >
+                <History className="w-4 h-4" />
+                <span className="hidden sm:inline">History</span>
+              </button>
+              <button
+                onClick={handleNewPresentation}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors shadow-sm"
+              >
+                <Plus className="w-4 h-4" />
+                <span className="hidden sm:inline">New</span>
+              </button>
             </div>
-          )}
+          </div>
         </div>
       </header>
 
@@ -150,6 +207,17 @@ export default function App() {
           )}
         </div>
       </main>
+
+      <HistoryModal
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        onSelect={handleSelectHistory}
+      />
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        onSave={updateApiKey}
+      />
     </div>
   );
 }
