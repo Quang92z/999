@@ -1,12 +1,25 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-let ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+let ai: GoogleGenAI | null = null;
+
+try {
+  const defaultKey = process.env.GEMINI_API_KEY;
+  if (defaultKey) {
+    ai = new GoogleGenAI({ apiKey: defaultKey });
+  }
+} catch (e) {
+  console.warn("Failed to initialize default Gemini API key");
+}
 
 // Initialize from localStorage if available
 if (typeof window !== 'undefined') {
   const storedKey = localStorage.getItem('slidegenius_api_key');
   if (storedKey) {
-    ai = new GoogleGenAI({ apiKey: storedKey });
+    try {
+      ai = new GoogleGenAI({ apiKey: storedKey });
+    } catch (e) {
+      console.warn("Failed to initialize Gemini API key from local storage");
+    }
   }
 }
 
@@ -15,7 +28,12 @@ export function updateApiKey(key: string) {
     ai = new GoogleGenAI({ apiKey: key });
     localStorage.setItem('slidegenius_api_key', key);
   } else {
-    ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const defaultKey = process.env.GEMINI_API_KEY;
+    if (defaultKey) {
+      ai = new GoogleGenAI({ apiKey: defaultKey });
+    } else {
+      ai = null;
+    }
     localStorage.removeItem('slidegenius_api_key');
   }
 }
@@ -142,6 +160,10 @@ Key requirements for the presentation:
 
   while (attempt < maxRetries) {
     try {
+      if (!ai) {
+        throw new Error("API key is not configured. Please add your Gemini API key in Settings.");
+      }
+
       const response = await ai.models.generateContent({
         model: "gemini-3.1-pro-preview",
         contents: prompt,
